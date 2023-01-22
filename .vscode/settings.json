@@ -1,0 +1,6 @@
+{
+    "go.toolsEnvVars": {
+    "CGO_CFLAGS": "-I${workspaceFolder}/thirdparty/bcc/lib/include -I${workspaceFolder}/thirdparty/libbpf/lib/include",
+    "CGO_LDFLAGS": "-static -L${workspaceFolder}/thirdparty/bcc/lib/lib -lbcc-syms -L${workspaceFolder}/thirdparty/libbpf/lib/lib64 -lbpf -lstdc++ -lelf -lz"
+    }
+}
