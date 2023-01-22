@@ -1,28 +1,23 @@
 package symtab
 
 import (
-	"fmt"
 	"os"
 	"strings"
 	"testing"
 )
 
 func TestGoSymBccFallback(t *testing.T) {
-	fmt.Print("---------------------------------1\n")
 	bcc := func() SymbolTable {
 		return NewBCCSymbolTable(os.Getpid())
 	}
-	fmt.Print("---------------------------------2\n")
 	gosym, _ := NewGoSymbolTable("/proc/self/exe", &bcc)
-	fmt.Print("---------------------------------3\n")
 	malloc := testHelperGetMalloc()
-	fmt.Print("---------------------------------4\n")
 	res := gosym.Resolve(uint64(malloc), false)
-	fmt.Print("---------------------------------5\n")
-	fmt.Printf("||||||||||||||||||%v+", res)
+
 	if !strings.Contains(res.Name, "malloc") {
 		t.FailNow()
 	}
+
 	if !strings.Contains(res.Module, "libc.so") {
 		t.FailNow()
 	}
