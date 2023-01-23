@@ -1,8 +1,8 @@
-	EXTRA_CGO_CFLAGS := $(EXTRA_CGO_CFLAGS) -I$(abspath ./thirdparty/libbpf/lib/include) \
-		-I$(abspath ./thirdparty/bcc/lib/include)
-	EXTRA_CGO_LDFLAGS := $(EXTRA_CGO_LDFLAGS)  -L$(abspath ./thirdparty/libbpf/lib/lib64) -lbpf \
-		-L$(abspath ./thirdparty/bcc/lib/lib) -lbcc-syms -lstdc++ -lelf -lz
-	LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):$(abspath ./thirdparty/libbpf/lib/lib64):$(abspath ./thirdparty/bcc/lib/lib)
+EXTRA_CGO_CFLAGS := $(EXTRA_CGO_CFLAGS) -I$(abspath ./thirdparty/libbpf/lib/include) \
+	-I$(abspath ./thirdparty/bcc/lib/include)
+EXTRA_CGO_LDFLAGS := $(EXTRA_CGO_LDFLAGS)  -L$(abspath ./thirdparty/libbpf/lib/lib64) -lbpf \
+	-L$(abspath ./thirdparty/bcc/lib/lib) -lbcc-syms -lstdc++ -lelf -lz
+LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):$(abspath ./thirdparty/libbpf/lib/lib64):$(abspath ./thirdparty/bcc/lib/lib)
 
 .PHONY: all
 all: build
