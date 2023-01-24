@@ -11,7 +11,7 @@ all: build
 build: build-bcc build-libbpf
 	CGO_CFLAGS="$(CGO_CFLAGS) $(EXTRA_CGO_CFLAGS)" \
 	CGO_LDFLAGS="-static $(CGO_LDFLAGS) $(EXTRA_CGO_LDFLAGS)" \
-	go build ./symtab
+	go build -o bin/pyro ./cmd/main.go
 
 
 .PHONY: build-bcc
@@ -26,10 +26,11 @@ build-libbpf:
 tests: build
 	CGO_CFLAGS="$(CGO_CFLAGS) $(EXTRA_CGO_CFLAGS)" \
 	CGO_LDFLAGS="$(CGO_LDFLAGS) $(EXTRA_CGO_LDFLAGS)" \
-	LD_LIBRARY_PATH="$(LD_LIBRARY_PATH)"
-	go test ./...
+	LD_LIBRARY_PATH="$(LD_LIBRARY_PATH)" \
+	go test -v ./...
 
 .PHONY: clean
 clean:
 	make -C thirdparty/bcc clean
 	make -C thirdparty/libbpf clean
+	rm -rf bin

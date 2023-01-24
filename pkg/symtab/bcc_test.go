@@ -1,6 +1,7 @@
 package symtab
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -14,11 +15,14 @@ func TestGoSymBccFallback(t *testing.T) {
 	malloc := testHelperGetMalloc()
 	res := gosym.Resolve(uint64(malloc), false)
 
+	fmt.Printf("%v\n", res)
+
 	if !strings.Contains(res.Name, "malloc") {
 		t.FailNow()
 	}
 
-	if !strings.Contains(res.Module, "libc.so") {
+	if !strings.Contains(res.Module, "libc.so") &&
+		!strings.Contains(res.Module, "ld-musl") {
 		t.FailNow()
 	}
 }

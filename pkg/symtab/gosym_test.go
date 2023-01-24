@@ -15,7 +15,7 @@ func TestGoSymSelfTest(t *testing.T) {
 		t.Fatalf("failed to create symtab %v", err)
 	}
 	sym := symtab.Resolve(uint64(ptr), false)
-	expectedSym := "alphameta.io/pyro/symtab.TestGoSymSelfTest"
+	expectedSym := "alphameta.io/pyro/pkg/symtab.TestGoSymSelfTest"
 	if sym.Name != expectedSym {
 		t.Fatalf("Expected %s got %s", expectedSym, sym.Name)
 	}

@@ -7,5 +7,6 @@
     "CGO_CFLAGS": "-I${workspaceFolder}/thirdparty/bcc/lib/include -I${workspaceFolder}/thirdparty/libbpf/lib/include",
     "CGO_LDFLAGS": "-L${workspaceFolder}/thirdparty/bcc/lib/lib -lbcc-syms -L${workspaceFolder}/thirdparty/libbpf/lib/lib64 -lbpf -lstdc++ -lelf -lz",
 	"LD_LIBRARY_PATH": "${workspaceFolder}/thirdparty/bcc/lib/lib:${workspaceFolder}/thirdparty/libbpf/lib64"  
-    }
+    },
+    "git.autorefresh": true
 }
