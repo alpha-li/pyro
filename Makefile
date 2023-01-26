@@ -8,7 +8,7 @@ LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):$(abspath ./thirdparty/libbpf/lib/lib64):$
 all: build
 
 .PHONY: build
-build: build-bcc build-libbpf
+build: build-bcc build-libbpf build-bpf
 	CGO_CFLAGS="$(CGO_CFLAGS) $(EXTRA_CGO_CFLAGS)" \
 	CGO_LDFLAGS="-static $(CGO_LDFLAGS) $(EXTRA_CGO_LDFLAGS)" \
 	go build -o bin/pyro ./cmd/main.go
@@ -22,6 +22,10 @@ build-bcc:
 build-libbpf:
 	make -C thirdparty/libbpf
 
+.PHONY: build-bpf
+build-bpf: build-libbpf
+	make -C pkg/spies build-bpf
+
 .PHONY: tests
 tests: build
 	CGO_CFLAGS="$(CGO_CFLAGS) $(EXTRA_CGO_CFLAGS)" \
@@ -33,4 +37,5 @@ tests: build
 clean:
 	make -C thirdparty/bcc clean
 	make -C thirdparty/libbpf clean
+	make -C pkg/spies clean
 	rm -rf bin
