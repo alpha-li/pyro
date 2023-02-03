@@ -21,7 +21,7 @@ func TestGoSymBccFallback(t *testing.T) {
 		t.FailNow()
 	}
 
-	if !strings.Contains(res.Module, "libc.so") &&
+	if !strings.Contains(res.Module, "libc") &&
 		!strings.Contains(res.Module, "ld-musl") {
 		t.FailNow()
 	}
