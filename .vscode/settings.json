@@ -10,7 +10,8 @@
     },
     "git.autorefresh": true,
     "files.associations": {
-        "profile.bpf.h": "c"
+        "profile.bpf.h": "c",
+        "biotrace.bpf.h": "c"
     },
     "C_Cpp.default.includePath": [
         "${workspaceFolder}/thirdparty/libbpf/lib/include"

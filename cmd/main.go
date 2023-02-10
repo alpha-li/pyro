@@ -5,11 +5,11 @@ import (
 	"os"
 	"time"
 
-	"alphameta.io/pyro/pkg/spies/cpuspy"
+	"alphameta.io/pyro/pkg/spies/biospy"
 )
 
 func main() {
-	s := cpuspy.NewSession(0, 99, 128)
+	s := biospy.NewSession(0, 128)
 	if s == nil {
 		fmt.Fprintln(os.Stderr, "NewSession Failed!")
 		os.Exit(1)
@@ -30,6 +30,4 @@ func main() {
 			return nil
 		})
 	}
-
-	s.Stop()
 }

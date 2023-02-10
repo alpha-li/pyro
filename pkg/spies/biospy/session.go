@@ -1,7 +1,4 @@
-// Package ebpfspy provides integration with Linux eBPF. It is a rough copy of profile.py from BCC tools:
-//
-//	https://github.com/iovisor/bcc/blob/master/tools/profile.py
-package cpuspy
+package biospy
 
 import (
 	"bytes"
@@ -9,11 +6,9 @@ import (
 	"encoding/binary"
 	"fmt"
 	"sync"
-	"syscall"
 	"unsafe"
 
 	"alphameta.io/pyro/pkg/symcache"
-	"alphameta.io/pyro/pkg/util/cpuonline"
 	"golang.org/x/sys/unix"
 
 	bpf "github.com/aquasecurity/libbpfgo"
@@ -21,22 +16,18 @@ import (
 
 //#cgo CFLAGS: -I./bpf/
 //#include <linux/types.h>
-//#include "profile.bpf.h"
+//#include "biotrace.bpf.h"
 import "C"
 
 type Session struct {
 	pid             int
-	sampleRate      uint32
 	symbolCacheSize int
-
-	perfEventFds []int
 
 	symCache *symcache.SymbolCache
 
 	module    *bpf.Module
 	mapCounts *bpf.BPFMap
 	mapStacks *bpf.BPFMap
-	mapArgs   *bpf.BPFMap
 	prog      *bpf.BPFProg
 	link      *bpf.BPFLink
 
@@ -47,10 +38,9 @@ type Session struct {
 
 const btf = "should not be used" // canary to detect we got relocations
 
-func NewSession(pid int, sampleRate uint32, symbolCacheSize int) *Session {
+func NewSession(pid int, symbolCacheSize int) *Session {
 	return &Session{
 		pid:             pid,
-		sampleRate:      sampleRate,
 		symbolCacheSize: symbolCacheSize,
 	}
 }
@@ -70,7 +60,7 @@ func (s *Session) Start() error {
 	if s.symCache, err = symcache.NewSymbolCache(s.symbolCacheSize); err != nil {
 		return err
 	}
-	args := bpf.NewModuleArgs{BPFObjBuff: profileBpf,
+	args := bpf.NewModuleArgs{BPFObjBuff: biotraceBpf,
 		BTFObjPath: btf}
 	if s.module, err = bpf.NewModuleFromBufferArgs(args); err != nil {
 		return err
@@ -78,7 +68,7 @@ func (s *Session) Start() error {
 	if err = s.module.BPFLoadObject(); err != nil {
 		return err
 	}
-	if s.prog, err = s.module.GetProgram("do_perf_event"); err != nil {
+	if s.prog, err = s.module.GetProgram("trace_io_start"); err != nil {
 		return err
 	}
 	if err = s.findMaps(); err != nil {
@@ -114,7 +104,7 @@ func (s *Session) Snapshot(cb func(name []byte, value uint64, pid uint32) error)
 	var sfs []sf
 	knownStacks := map[uint32]bool{}
 	for i, key := range keys {
-		ck := (*C.struct_profile_key_t)(unsafe.Pointer(&key[0]))
+		ck := (*C.struct_biotrace_key_t)(unsafe.Pointer(&key[0]))
 		value := values[i]
 
 		pid := uint32(ck.pid)
@@ -154,17 +144,11 @@ func (s *Session) Snapshot(cb func(name []byte, value uint64, pid uint32) error)
 
 func (s *Session) Stop() {
 	s.symCache.Clear()
-	for fd := range s.perfEventFds {
-		_ = syscall.Close(fd)
-	}
 	s.module.Close()
 }
 
 func (s *Session) findMaps() error {
 	var err error
-	if s.mapArgs, err = s.module.GetMap("args"); err != nil {
-		return err
-	}
 	if s.mapCounts, err = s.module.GetMap("counts"); err != nil {
 		return err
 	}
@@ -174,45 +158,13 @@ func (s *Session) findMaps() error {
 	return nil
 }
 func (s *Session) initArgs() error {
-	var zero uint32
-	var err error
-	var tgidFilter uint32
-	if s.pid <= 0 {
-		tgidFilter = 0
-	} else {
-		tgidFilter = uint32(s.pid)
-	}
-	args := C.struct_profile_bss_args_t{
-		tgid_filter: C.uint(tgidFilter),
-	}
-	err = s.mapArgs.UpdateValueFlags(unsafe.Pointer(&zero), unsafe.Pointer(&args), 0)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
 func (s *Session) attachPerfEvent() error {
-	var cpus []uint
 	var err error
-	if cpus, err = cpuonline.Get(); err != nil {
+	if _, err = s.prog.AttachGeneric(); err != nil {
 		return err
-	}
-	for _, cpu := range cpus {
-		attr := unix.PerfEventAttr{
-			Type:   unix.PERF_TYPE_SOFTWARE,
-			Config: unix.PERF_COUNT_SW_CPU_CLOCK,
-			Bits:   unix.PerfBitFreq,
-			Sample: uint64(s.sampleRate),
-		}
-		fd, err := unix.PerfEventOpen(&attr, -1, int(cpu), -1, unix.PERF_FLAG_FD_CLOEXEC)
-		if err != nil {
-			return err
-		}
-		s.perfEventFds = append(s.perfEventFds, fd)
-		if _, err = s.prog.AttachPerfEvent(fd); err != nil {
-			return err
-		}
 	}
 	return nil
 }
@@ -267,5 +219,5 @@ func reverse(s []string) {
 	}
 }
 
-//go:embed bpf/profile.bpf.o
-var profileBpf []byte
+//go:embed bpf/biotrace.bpf.o
+var biotraceBpf []byte
